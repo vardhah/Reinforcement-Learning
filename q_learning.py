@@ -19,83 +19,81 @@ r[0,1]=1
 r[0,2]=1
 r[15,0]=1
 r[15,3]=1
+print('=> Reward matrix is:\n',r)
 
-print('Reward matrix is:\n',r)
-
-#Map coordinate grid to location grid
+#Map coordinate grid to location grid(generated mapper)[can be used for any 2D game]
 statemap=np.ones((4,4))
 statemap=statemap.astype(int)
 mapper=np.zeros((4,4))
 mapper=mapper.astype(int)
-print('Initial grid map is:\n',statemap)
 k=0
 for i in range(statemap.shape[0]):
   for j in range(statemap.shape[1]):
    mapper[i][j]=k+j
   k=k+j+1
- 
-print('Mapper matrix is:\n',mapper)
+print('\n=> Mapper matrix is:\n',mapper)
 
 
 
-q=np.zeros((16,4))
-print('Q matrix is:\n',q)
-s=12
-a=0 # a 
+s=12 # represent state of agent
+a=0 # a represent action ( 0 for => , 1 for up, 2 for <= , 3 for down)
 
 
-def epsilon_greedy(epsilon=0.25,numberoftrails=1000,episode=5):
- global a
- global s
+def q_learning(epsilon=0.25,episodes=1000,simulation=5):
+ global a,s
  alpha=0.1
  gamma= 0.9
- countexplore = 0
- countexploit=0
- print('Epsilon is:',epsilon,'\nNumer of trails are:',numberoftrails)
- reinforcement={}
- iteration=[]
- states=[]
- reinforce=0
- for j in range(episode):
-  q=np.zeros((16,4))   
-  for i in range(numberoftrails):
-   s=12
-   #print('States Navigated is:',states)
-   #print('Reinforcement:',reinforce)
-   states=[]
-   reinforce=0
-   while (s!=0 and s!=15):
+ 
+ print('Epsilon is:',epsilon,'\nNumber of Episodes are:',episodes)
+ 
+ reinforcement={}      #Dictionary to store reinforcement array for each simulation run
+ iteration=[]          #count number of episodes
+ states=[]             #used for debugging purpose ( to know the states navigated)
+ rein=[]               # collect reinforecemnt for a simulation in array
+ reinforce=0           # collect Reinforcement for a run 
+ 
+ for j in range(simulation):
+  q=np.zeros((16,4))   #Initialisation of Q matrix
+  rein=[]              #clear rein array after each simulation
+  iteration=[] 
+  countexplore,countexploit = 0,0        
+  for i in range(episodes):
+   s=12                #Intialise state after every run 
+   states=[]           #clear state array
+   reinforce=0         #clear reinforcement after every run
+   
+   while (s!=0 and s!=15):      #until reached state 0 ( one is labled 0 & other is 15 )
      states.append(s)
-     #print('current location is :',s) 
-     z=np.random.rand(1)
-     if(z<epsilon):
+     z=np.random.rand(1)        #generate a random samples from a uniform distribution over [0, 1).
+     if(z<epsilon):             #test, if generated number is less than exploration rate
       countexplore+=1
-      a=np.random.randint(4)
-      #print('------------------------------------------')
-      #print('Random action would be:',a)
-      #print('Reward would be:',r[s,a])
+      a=np.random.randint(4)    #generate random integer from a uniform distribution over [0, 4).random move
      else:
       countexploit+=1
-      a=np.argmax(q[s])
-      #print('------------------------------------------')
-      #print('Max rewarded Action is:',a) 
-      #print('Reward is:',np.amax(r[s]))  
-     s_p= updatestate(s,a)
-     reinforce+=r[s,a]
-     #print(np.amax(q[s_p]))
-     q[s,a]=q[s,a]+alpha*(r[s,a]+gamma*np.amax(q[s_p])-q[s,a])
-     s=s_p
-   reinforcement
-   reinforcement[j].append(reinforce)
+      a=np.argmax(q[s])         #take action based on learning(maximise)   
+     
+     s_p= updatestate(s,a)      #calculate the next state and its location
+     reinforce+=r[s,a]          #add the reinforcement received
+     q[s,a]=q[s,a]+alpha*(r[s,a]+gamma*np.amax(q[s_p])-q[s,a])       # Q value updation
+     s=s_p                                                           # Update state
+   
+   rein.append(reinforce)                    # once run is complete, add received reinforcemnt to rein array
    iteration.append(i)
   
-  #print('-============================================-')
-  #print('explored ',countexplore,'times')
-  #print('exploited ',countexploit,'times')
-  #print('Final Q is:',q)   
- #plt.plot(iteration,reinforcement,color='green',linewidth=1)
- #print('Q matrix is:\n',q)
+  reinforcement[j]=np.array(rein)           #once episode is done add it in dictionary 
+  print('-========Simulation',j+1,'====================================-')
+  print('explored ',countexplore,'times')
+  print('exploited ',countexploit,'times')
  
+ reinforcementC=reinforcement[0]
+ for count in range(1,len(reinforcement)):
+     reinforcementC= np.vstack((reinforcementC,reinforcement[count]))
+ #print(reinforcementC)
+ reinforcementC=np.average(reinforcementC,axis=0)
+ 
+ plt.plot(iteration,reinforcementC,color='green',linewidth=1)
+ 
+
 def updatestate(s,a):
  
  if (s==0 or s==15):
