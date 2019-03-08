@@ -2,7 +2,7 @@
 """
 Created on Wed Mar  6 11:00:17 2019
 
-@author: HPP
+@author: Harsh Vardhan 
 """
 
 import numpy as np 
@@ -39,7 +39,7 @@ s=12 # represent state of agent
 a=0 # a represent action ( 0 for => , 1 for up, 2 for <= , 3 for down)
 
 
-def q_learning(epsilon=0.25,episodes=1000,simulation=5):
+def q_learning(epsilon=0.25,episodes=500,simulation=5):
  global a,s
  alpha=0.1
  gamma= 0.9
@@ -61,7 +61,13 @@ def q_learning(epsilon=0.25,episodes=1000,simulation=5):
    s=12                #Intialise state after every run 
    states=[]           #clear state array
    reinforce=0         #clear reinforcement after every run
+  
+  #customise the experiment 1,2 & 3  (for exp 1,comment all 3 lines)(exp3=>comment "alpha=1/i" ) 
+  #if i!=0:
+    #epsilon = 1/i
+    #alpha=1/i
    
+   #starting simulation run  ------------
    while (s!=0 and s!=15):      #until reached state 0 ( one is labled 0 & other is 15 )
      states.append(s)
      z=np.random.rand(1)        #generate a random samples from a uniform distribution over [0, 1).
@@ -93,9 +99,9 @@ def q_learning(epsilon=0.25,episodes=1000,simulation=5):
  
  plt.plot(iteration,reinforcementC,color='green',linewidth=1)
  
-
-def updatestate(s,a):
- 
+#below function can be called to update state by given current state and action 
+# @parameter : ( state, action)
+def updatestate(s,a): 
  if (s==0 or s==15):
      #print('Navigation over')
      return s
@@ -121,12 +127,15 @@ def updatestate(s,a):
      zz= fetchloc(cc)
      #print('Updated location is',zz)
      return zz    
- 
+
+#Below function convert loaction(labled in number) to coordinate system 
+# @param (location label)
 def fetchcoord(loc):
     z=np.where(mapper==loc)
     x=np.concatenate((z[0], z[1]), axis=0)
     return x
 
+#Below function convert coordinate system in to location(labled in number). 
 def fetchloc(coord):
     return mapper[coord[0]][coord[1]]
 
